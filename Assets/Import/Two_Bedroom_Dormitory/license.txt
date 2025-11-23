@@ -1,0 +1,11 @@
+Model Information:
+* title:	Two Bedroom Dormitory
+* source:	https://sketchfab.com/3d-models/two-bedroom-dormitory-6ebf7304bd564a2e9124f0999bc5cf5f
+* author:	QA Graphics (https://sketchfab.com/QAG)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Two Bedroom Dormitory" (https://sketchfab.com/3d-models/two-bedroom-dormitory-6ebf7304bd564a2e9124f0999bc5cf5f) by QA Graphics (https://sketchfab.com/QAG) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
