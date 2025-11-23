@@ -1,0 +1,11 @@
+Model Information:
+* title:	Old Persian Carpet_14_MB
+* source:	https://sketchfab.com/3d-models/old-persian-carpet-14-mb-08fee343183d4287a9ac8269ec4e97c5
+* author:	Mehdi Shahsavan (https://sketchfab.com/ahmagh2e)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Old Persian Carpet_14_MB" (https://sketchfab.com/3d-models/old-persian-carpet-14-mb-08fee343183d4287a9ac8269ec4e97c5) by Mehdi Shahsavan (https://sketchfab.com/ahmagh2e) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
