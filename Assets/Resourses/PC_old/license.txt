@@ -1,0 +1,11 @@
+Model Information:
+* title:	old pc periphery
+* source:	https://sketchfab.com/3d-models/old-pc-periphery-7f71e59dcd2c46b5a7d4d1c36b12bd31
+* author:	Slepa (https://sketchfab.com/Slepskiy)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "old pc periphery" (https://sketchfab.com/3d-models/old-pc-periphery-7f71e59dcd2c46b5a7d4d1c36b12bd31) by Slepa (https://sketchfab.com/Slepskiy) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

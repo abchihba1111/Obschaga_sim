@@ -1,4 +1,0 @@
-repository "Obschaga_sim/Obschaga_sim@10171532415003@cloud"
-  path "/"
-    br "/main"
-    co "/main"

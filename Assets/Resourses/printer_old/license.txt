@@ -1,0 +1,11 @@
+Model Information:
+* title:	Printer: Household Props 8
+* source:	https://sketchfab.com/3d-models/printer-household-props-8-39c75da7fbd34187acd1750d7ac41142
+* author:	Daniel O'Neil (https://sketchfab.com/doneil)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Printer: Household Props 8" (https://sketchfab.com/3d-models/printer-household-props-8-39c75da7fbd34187acd1750d7ac41142) by Daniel O'Neil (https://sketchfab.com/doneil) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
