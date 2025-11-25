@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerController1 : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Transform _cameraTransform;
@@ -14,7 +14,7 @@ public class PlayerController1 : MonoBehaviour
     [SerializeField] private float _speedRun = 7f;
 
     [Range(1,100)]
-    [SerializeField] private float _sensivity = 200f;
+    [SerializeField] private float _sensivity = 500f;
 
     float rotationX;
     bool isGrounded;
