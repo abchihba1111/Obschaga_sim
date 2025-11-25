@@ -1,82 +1,79 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController1 : MonoBehaviour
 {
-    public float Speed = 5f;
-    public float RotationSpeed = 180f;
+    [SerializeField] private CharacterController _characterController;
+    [SerializeField] private Transform _cameraTransform;
+    [SerializeField] private Transform _checkGroundTransform;
+    [SerializeField] private LayerMask _groundMask;
 
-    private Animator animator;
-    private Rigidbody rb;
-    private float moveForward;
-    private float rotateInput;
+    [Header("Settings")]
+    [SerializeField] private float _checkRadiusSphere = 0.2f;
+    [SerializeField] private float _gravity = -14f;
+    [SerializeField] private float _speed = 4f;
+    [SerializeField] private float _speedRun = 7f;
+
+    [Range(1,100)]
+    [SerializeField] private float _sensivity = 200f;
+
+    float rotationX;
+    bool isGrounded;
+
+    Vector3 velocity;
+    Vector3 move;
 
     void Start()
     {
-        animator = GetComponent<Animator>();
-        rb = GetComponent<Rigidbody>();
-
-        // Если нет Rigidbody - добавляем
-        if (rb == null)
-        {
-            rb = gameObject.AddComponent<Rigidbody>();
-            rb.useGravity = false; // Отключаем гравитацию, так как у нас фиксированная высота
-            rb.constraints = RigidbodyConstraints.FreezeRotation; // Запрещаем вращение физикой
-        }
+       Cursor.lockState = CursorLockMode.Locked;
+       Cursor.visible = false;
     }
 
     void Update()
     {
-        HandleInput();
-        HandleRotation();
-        HandleAnimation();
+        Rotate();
+        Move();
+        Velocity();
     }
 
-    void FixedUpdate()
+    private void Rotate()
     {
-        HandleMovement();
+        float mouseX = Input.GetAxis("Mouse X") * _sensivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * _sensivity * Time.deltaTime;
+
+        rotationX -= mouseY;
+        rotationX = Mathf.Clamp(rotationX, -90, 90f);
+        _cameraTransform.localRotation = Quaternion.Euler(rotationX,0,0);
+
+        transform.Rotate(0,mouseX,0);
     }
 
-    void HandleInput()
+    private void Move()
     {
-        moveForward = 0f;
-        if (Keyboard.current.wKey.isPressed) moveForward += 1f;
-        if (Keyboard.current.sKey.isPressed) moveForward -= 1f;
+        float moveX = Input.GetAxis("Horizontal");
+        float moveY = Input.GetAxis("Vertical");
 
-        rotateInput = 0f;
-        if (Keyboard.current.aKey.isPressed) rotateInput -= 1f;
-        if (Keyboard.current.dKey.isPressed) rotateInput += 1f;
-    }
+        move = transform.forward * moveY + transform.right * moveX;
 
-    void HandleRotation()
-    {
-        if (rotateInput != 0f)
+
+        if(Input.GetKey(KeyCode.LeftShift) && (moveX != 0 || moveY != 0))
         {
-            float rotation = rotateInput * RotationSpeed * Time.deltaTime;
-            transform.Rotate(0, rotation, 0);
-        }
-    }
-
-    void HandleMovement()
-    {
-        if (moveForward != 0f)
-        {
-            // Используем физику для движения
-            Vector3 movement = transform.forward * moveForward * Speed;
-            rb.linearVelocity = new Vector3(movement.x, rb.linearVelocity.y, movement.z);
+            _characterController.Move(move * _speedRun * Time.deltaTime);
         }
         else
         {
-            // Останавливаем движение когда нет ввода
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            _characterController.Move(move * _speed * Time.deltaTime);
         }
     }
 
-    void HandleAnimation()
+    private void Velocity()
     {
-        if (animator != null)
+        isGrounded = Physics.CheckSphere(_checkGroundTransform.position, _checkRadiusSphere, _groundMask);
+        if(isGrounded && velocity.y < 0)
         {
-            animator.SetFloat("Speed", Mathf.Abs(moveForward));
+            velocity.y = -2f;
         }
+        velocity.y += Time.deltaTime * _gravity;
+
+        _characterController.Move(velocity * Time.deltaTime);
     }
 }
