@@ -13,8 +13,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _speed = 4f;
     [SerializeField] private float _speedRun = 7f;
 
-    [Range(1,100)]
-    [SerializeField] private float _sensivity = 500f;
+    //[Range(1,1000)]
+    private float _sensivity;
+
+    public GameObject settingsPanel;
+    private SettingsManager settingsScript;
 
     float rotationX;
     bool isGrounded;
@@ -26,10 +29,16 @@ public class PlayerController : MonoBehaviour
     {
        Cursor.lockState = CursorLockMode.Locked;
        Cursor.visible = false;
+
+       settingsScript = settingsPanel.GetComponent<SettingsManager>();
+
     }
 
     void Update()
     {
+
+        _sensivity = settingsScript.sensitivityCamera;
+
         Rotate();
         Move();
         Velocity();
