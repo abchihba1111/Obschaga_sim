@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class SettingsManager : MonoBehaviour
 {
@@ -13,9 +14,6 @@ public class SettingsManager : MonoBehaviour
     public Button applyButton;
     public Button cancelButton;
     public Button backButton;
-
-    [Header("Источники Звуков")]
-    public AudioSource[] AudioSources; // Все AudioSource для управления громкостью
 
     [Header("Настройки яркости")]
     public GameObject brightnessPanel; // Панель для регулировки яркости
@@ -45,12 +43,19 @@ public class SettingsManager : MonoBehaviour
     private float originalSensitivity;
     private float originalBrightness;
 
+    // Списки для управления звуками
+    private List<AudioSource> allSoundSources = new List<AudioSource>();
+    private AudioSource musicSource;
+
     void Start()
     {
         Debug.Log("=== SettingsManager Initialization ===");
 
         // Инициализация яркости
         InitializeBrightnessPanel();
+
+        // Находим и классифицируем все AudioSource в сцене
+        FindAndClassifyAudioSources();
 
         // Устанавливаем значения по умолчанию при запуске
         SetDefaultValues();
@@ -64,7 +69,7 @@ public class SettingsManager : MonoBehaviour
         // Применяем начальные настройки сразу
         ApplyInitialSettings();
 
-        Debug.Log("SettingsManager готов - Все настройки установлены по умолчанию");
+        Debug.Log($"SettingsManager готов - Найдено: {allSoundSources.Count} звуков, Музыка: {(musicSource != null ? "есть" : "нет")}");
     }
 
     void InitializeBrightnessPanel()
@@ -85,6 +90,81 @@ public class SettingsManager : MonoBehaviour
         {
             Debug.LogWarning("Brightness panel not assigned!");
         }
+    }
+
+    void FindAndClassifyAudioSources()
+    {
+        // Находим все AudioSource в сцене
+        AudioSource[] allSources = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
+
+        Debug.Log($"Найдено {allSources.Length} AudioSource в сцене");
+
+        // Очищаем списки
+        allSoundSources.Clear();
+        musicSource = null;
+
+        foreach (AudioSource source in allSources)
+        {
+            // Попробуем определить тип AudioSource
+            if (IsMusicSource(source))
+            {
+                musicSource = source;
+                Debug.Log($"Определен как MusicSource: {source.gameObject.name}, clip: {source.clip?.name}");
+            }
+            else
+            {
+                allSoundSources.Add(source);
+                Debug.Log($"Определен как SoundSource: {source.gameObject.name}, clip: {source.clip?.name}");
+            }
+        }
+
+        // Если не нашли музыку, но есть AudioSource на Player, используем его как музыку
+        if (musicSource == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                AudioSource playerAudio = player.GetComponent<AudioSource>();
+                if (playerAudio != null)
+                {
+                    musicSource = playerAudio;
+                    // Удаляем его из списка звуков если он там есть
+                    allSoundSources.Remove(playerAudio);
+                    Debug.Log($"Используем AudioSource на Player как MusicSource: {playerAudio.clip?.name}");
+                }
+            }
+        }
+    }
+
+    bool IsMusicSource(AudioSource source)
+    {
+        // Эвристики для определения музыки
+        // 1. Проверяем имя объекта или клипа
+        string sourceName = source.gameObject.name.ToLower();
+        string clipName = source.clip?.name?.ToLower() ?? "";
+
+        // Если в имени есть "music", "музыка", "background", "фон"
+        if (sourceName.Contains("music") || sourceName.Contains("музык") ||
+            sourceName.Contains("background") || sourceName.Contains("фон") ||
+            clipName.Contains("music") || clipName.Contains("музык") ||
+            clipName.Contains("background") || clipName.Contains("фон"))
+        {
+            return true;
+        }
+
+        // 2. Проверяем настройки AudioSource (музыка обычно loop = true)
+        if (source.loop)
+        {
+            return true;
+        }
+
+        // 3. Проверяем длительность клипа (музыка обычно длинная)
+        if (source.clip != null && source.clip.length > 30f)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     void SetDefaultValues()
@@ -116,13 +196,14 @@ public class SettingsManager : MonoBehaviour
             Debug.Log("Sound slider configured");
         }
 
-        // МУЗЫКА
+        // МУЗЫКА - с ДВУМЯ обработчиками
         if (musicSlider != null)
         {
             musicSlider.onValueChanged.RemoveAllListeners();
-            musicSlider.onValueChanged.AddListener(OnMusicChanged);
+            musicSlider.onValueChanged.AddListener(OnMusicChanged); // Для обновления текущего значения
+            musicSlider.onValueChanged.AddListener(musicOnChangeSlider); // Для реального применения музыки
             musicSlider.value = currentMusicVolume;
-            Debug.Log("Music slider configured");
+            Debug.Log("Music slider configured with music handler");
         }
 
         // ЧУВСТВИТЕЛЬНОСТЬ - с ДВУМЯ обработчиками
@@ -180,8 +261,8 @@ public class SettingsManager : MonoBehaviour
 
         if (musicSlider != null)
         {
-            // Если есть отдельный обработчик для музыки, вызовите его здесь
-            Debug.Log($"Initial music volume: {musicSlider.value}");
+            musicOnChangeSlider(musicSlider.value);
+            Debug.Log($"Initial music volume applied: {musicSlider.value}");
         }
 
         if (brightnessSlider != null)
@@ -231,39 +312,56 @@ public class SettingsManager : MonoBehaviour
 
     // ===== РЕАЛЬНОЕ ПРИМЕНЕНИЕ НАСТРОЕК (В РЕАЛЬНОМ ВРЕМЕНИ) =====
 
-    // ГРОМКОСТЬ ЗВУКА - применяется сразу
+    // ГРОМКОСТЬ ЗВУКОВ (двери, шаги и т.д.) - применяется сразу
     public void soundOnChangeSlider(float value)
     {
-        Debug.Log($"Applying sound volume: {Mathf.RoundToInt(value * 100)}%");
+        Debug.Log($"Applying SOUND effects volume: {Mathf.RoundToInt(value * 100)}%");
 
-        // 1. Глобальная громкость
-        AudioListener.volume = value;
+        // Важно: НЕ используем AudioListener.volume вообще!
+        // AudioListener.volume = 1.0f; // Всегда оставляем на максимуме
 
-        // 2. Индивидуальная громкость для каждого AudioSource
-        if (AudioSources != null && AudioSources.Length > 0)
+        // Регулируем громкость только для звуковых эффектов
+        int appliedCount = 0;
+        foreach (AudioSource source in allSoundSources)
         {
-            foreach (AudioSource audioSource in AudioSources)
+            if (source != null && source != musicSource)
             {
-                if (audioSource != null)
-                {
-                    audioSource.volume = value;
-                }
+                source.volume = value;
+                appliedCount++;
             }
-            Debug.Log($"Applied to {AudioSources.Length} AudioSources");
+        }
+
+        Debug.Log($"Applied sound volume to {appliedCount} sound sources");
+
+        // Если все еще регулируется музыка, значит проблема в другом месте
+        if (musicSource != null && Mathf.Abs(musicSource.volume - value) < 0.01f)
+        {
+            Debug.LogWarning("Music source volume seems to be affected by sound slider! Check AudioListener settings.");
+        }
+    }
+
+    // ГРОМКОСТЬ МУЗЫКИ - применяется сразу
+    public void musicOnChangeSlider(float value)
+    {
+        Debug.Log($"Applying MUSIC volume: {Mathf.RoundToInt(value * 100)}%");
+
+        if (musicSource != null)
+        {
+            // Устанавливаем громкость только для музыки
+            musicSource.volume = value;
+            Debug.Log($"MUSIC volume set to: {value} on {musicSource.gameObject.name}");
         }
         else
         {
-            Debug.LogWarning("No AudioSources assigned in AudioSources array!");
+            Debug.LogWarning("No music source found!");
 
-            // Автопоиск AudioSources если не назначены
-            AudioSource[] foundSources = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
-            if (foundSources.Length > 0)
+            // Попробуем найти заново
+            FindAndClassifyAudioSources();
+
+            if (musicSource != null)
             {
-                Debug.Log($"Found {foundSources.Length} AudioSources in scene");
-                foreach (AudioSource audioSource in foundSources)
-                {
-                    audioSource.volume = value;
-                }
+                musicSource.volume = value;
+                Debug.Log($"Found and set MUSIC volume to: {value}");
             }
         }
     }
@@ -381,6 +479,9 @@ public class SettingsManager : MonoBehaviour
         if (soundSlider != null)
             soundOnChangeSlider(soundSlider.value);
 
+        if (musicSlider != null)
+            musicOnChangeSlider(musicSlider.value);
+
         if (brightnessSlider != null)
             brightnessOnChangeSlider(brightnessSlider.value);
 
@@ -418,6 +519,9 @@ public class SettingsManager : MonoBehaviour
         if (soundSlider != null)
             soundOnChangeSlider(soundSlider.value);
 
+        if (musicSlider != null)
+            musicOnChangeSlider(musicSlider.value);
+
         if (brightnessSlider != null)
             brightnessOnChangeSlider(brightnessSlider.value);
 
@@ -446,7 +550,7 @@ public class SettingsManager : MonoBehaviour
         if (sensitivitySlider != null) originalSensitivity = sensitivitySlider.value;
         if (brightnessSlider != null) originalBrightness = brightnessSlider.value;
 
-        Debug.Log($"Settings saved for cancel: Sound={originalSoundVolume}, Brightness={originalBrightness}, Sensitivity={originalSensitivity}");
+        Debug.Log($"Settings saved for cancel: Sound={originalSoundVolume}, Music={originalMusicVolume}, Brightness={originalBrightness}, Sensitivity={originalSensitivity}");
 
         // Обновляем текущие значения
         currentSoundVolume = originalSoundVolume;
@@ -481,6 +585,9 @@ public class SettingsManager : MonoBehaviour
         // Применяем значения
         if (soundSlider != null)
             soundOnChangeSlider(soundSlider.value);
+
+        if (musicSlider != null)
+            musicOnChangeSlider(musicSlider.value);
 
         if (brightnessSlider != null)
             brightnessOnChangeSlider(brightnessSlider.value);
@@ -529,6 +636,9 @@ public class SettingsManager : MonoBehaviour
         // Применяем значения
         if (soundSlider != null)
             soundOnChangeSlider(soundSlider.value);
+
+        if (musicSlider != null)
+            musicOnChangeSlider(musicSlider.value);
 
         if (brightnessSlider != null)
             brightnessOnChangeSlider(brightnessSlider.value);
