@@ -3,24 +3,41 @@ using UnityEngine;
 public class PlayerRaycast : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
-    [SerializeField] private LayerMask _layerMask;
-    [SerializeField] private float _raycastDistance = 1f;
+    [SerializeField] private LayerMask _doorLayer;
+    [SerializeField] private LayerMask _printerLayer;
+    [SerializeField] private float _raycastDistance = 3f;
 
     private bool isPaused = false;
 
     void Update()
     {
-        // Не обрабатываем ввод если игра на паузе
         if (isPaused) return;
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            RaycastHit hit;
+            // 1. Проверяем принтер
+            RaycastHit printerHit;
+            bool hitPrinter = Physics.Raycast(_camera.transform.position, _camera.transform.forward,
+               out printerHit, _raycastDistance, _printerLayer);
 
-            if (Physics.Raycast(_camera.transform.position, _camera.transform.forward,
-               out hit, _raycastDistance, _layerMask))
+            if (hitPrinter)
             {
-                if (hit.collider.TryGetComponent(out OpenableObject openableObject))
+                if (printerHit.collider.TryGetComponent(out PrinterController printer))
+                {
+                    Debug.Log("Взаимодействие с принтером");
+                    printer.InteractWithPrinter();
+                    return; // Не проверяем двери если попали в принтер
+                }
+            }
+
+            // 2. Проверяем двери
+            RaycastHit doorHit;
+            bool hitDoor = Physics.Raycast(_camera.transform.position, _camera.transform.forward,
+               out doorHit, _raycastDistance, _doorLayer);
+
+            if (hitDoor)
+            {
+                if (doorHit.collider.TryGetComponent(out OpenableObject openableObject))
                 {
                     openableObject.OpenOrClose();
                 }
@@ -28,10 +45,8 @@ public class PlayerRaycast : MonoBehaviour
         }
     }
 
-    // Методы для управления паузой
     public void SetPaused(bool paused)
     {
         isPaused = paused;
-        Debug.Log($"PlayerRaycast: пауза = {paused}");
     }
 }

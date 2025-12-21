@@ -406,7 +406,7 @@ public class ShopController : MonoBehaviour
         if (!CanBuyItem(index)) return;
 
         playerMoney -= item.price;
-        moneyText.text = playerMoney.ToString();
+        UpdateMoneyText();
 
         if (item.isMultiItem)
         {
@@ -433,5 +433,14 @@ public class ShopController : MonoBehaviour
         }
 
         CreateItems();
+    }
+
+    // НОВЫЙ МЕТОД для обновления текста денег
+    public void UpdateMoneyText()
+    {
+        if (moneyText != null)
+        {
+            moneyText.text = playerMoney.ToString();
+        }
     }
 }
