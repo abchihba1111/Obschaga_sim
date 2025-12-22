@@ -50,29 +50,15 @@ public class PrinterController : MonoBehaviour
 
     public void InteractWithPrinter()
     {
-        Debug.Log("Взаимодействие с принтером");
+        if (isPrinting) return;
 
-        if (isPrinting)
-        {
-            Debug.Log("Принтер уже печатает");
-            return;
-        }
+        if (orderSystem == null) return;
 
-        if (orderSystem == null)
-        {
-            Debug.LogError("OrderSystem не назначен!");
-            return;
-        }
-
-        // Просим OrderSystem начать печать
         orderSystem.StartPrinting();
     }
 
-    // Этот метод вызывается из OrderSystem
     public void StartPrintingProcess(int sheets)
     {
-        if (isPrinting) return;
-
         sheetsToPrint = sheets;
         sheetsPrinted = 0;
         isPrinting = true;
@@ -91,8 +77,6 @@ public class PrinterController : MonoBehaviour
                 printerStatusText.text = $"Печатается: 0/{sheets}";
             }
         }
-
-        Debug.Log($"Начата печать: {sheets} листов");
     }
 
     void CompletePrinting()
@@ -108,7 +92,5 @@ public class PrinterController : MonoBehaviour
         {
             printerUI.SetActive(false);
         }
-
-        Debug.Log("Печать завершена");
     }
 }

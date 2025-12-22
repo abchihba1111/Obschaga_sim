@@ -16,14 +16,19 @@ public class OrderSystem : MonoBehaviour
     public MonoBehaviour cameraScript;
     public MonoBehaviour playerScript;
     public PrinterController printer;
-    public ShopController shopController; // Ссылка на ShopController!
+    public ShopController shopController;
 
     public int maxOrders = 5;
     public int paperInventory = 100;
     private bool isPanelOpen = false;
+    private GameObject currentCustomer;
 
     public float orderSpawnDelay = 10f;
     public int maxSimultaneousOrders = 3;
+
+    [Header("Настройки клиента")]
+    public GameObject customerPrefab;
+    public Transform customerSpawnPoint;
 
     private List<Order> orders = new List<Order>();
     private bool isGeneratingOrders = true;
@@ -38,6 +43,7 @@ public class OrderSystem : MonoBehaviour
         public bool printed;
         public bool customerCalled;
         public bool paperSpent;
+        public GameObject customerInstance;
 
         public Order(int orderId, int sheetsCount, int rewardAmount)
         {
@@ -48,6 +54,7 @@ public class OrderSystem : MonoBehaviour
             printed = false;
             customerCalled = false;
             paperSpent = false;
+            customerInstance = null;
         }
     }
 
@@ -184,8 +191,9 @@ public class OrderSystem : MonoBehaviour
 
             if (callButton != null)
             {
-                callButton.gameObject.SetActive(order.printed && !order.customerCalled);
-                callButton.interactable = order.printed && !order.customerCalled;
+                bool shouldShow = order.printed && !order.customerCalled;
+                callButton.gameObject.SetActive(shouldShow);
+                callButton.interactable = shouldShow;
 
                 TMP_Text buttonText = callButton.GetComponentInChildren<TMP_Text>();
                 if (buttonText != null)
@@ -285,20 +293,51 @@ public class OrderSystem : MonoBehaviour
 
         order.customerCalled = true;
 
-        // Добавляем деньги в ShopController
+        // Находим клиента в сцене
+        CustomerController customerController = FindObjectOfType<CustomerController>();
+        if (customerController != null)
+        {
+            Debug.Log("Найден клиент в сцене, активируем...");
+            customerController.Setup(index, this);
+        }
+        else
+        {
+            Debug.LogError("Клиент не найден в сцене!");
+        }
+
+        CreateCards();
+    }
+
+    public void DeliverOrder(int orderIndex)
+    {
+        if (orderIndex < 0 || orderIndex >= orders.Count) return;
+
+        Order order = orders[orderIndex];
+
+        if (!order.printed || !order.customerCalled) return;
+
+        Debug.Log($"Выдаем заказ #{order.id}, награда: {order.reward}");
+
+        // Добавляем деньги
         if (shopController != null)
         {
             shopController.playerMoney += order.reward;
-            shopController.UpdateMoneyText(); // Нужно добавить этот метод в ShopController
+            shopController.UpdateMoneyText();
+            Debug.Log($"Деньги добавлены: {order.reward}");
         }
+
+        // Удаляем заказ
+        orders.RemoveAt(orderIndex);
+
+        // Добавляем новый
+        StartCoroutine(AddNewOrderWithDelay());
 
         UpdateUI();
 
-        orders.RemoveAt(index);
-
-        StartCoroutine(AddNewOrderWithDelay());
-
-        CreateCards();
+        if (isPanelOpen)
+        {
+            CreateCards();
+        }
     }
 
     IEnumerator AddNewOrderWithDelay()
@@ -316,17 +355,11 @@ public class OrderSystem : MonoBehaviour
         }
     }
 
-    public void DeliverOrder(int orderIndex)
-    {
-        CallCustomer(orderIndex);
-    }
-
     void UpdateUI()
     {
         if (paperText != null)
             paperText.text = paperInventory.ToString();
 
-        // Деньги берем из ShopController
         if (moneyText != null && shopController != null)
         {
             moneyText.text = shopController.playerMoney.ToString();

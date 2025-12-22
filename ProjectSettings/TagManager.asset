@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Door
   - Music
+  - Customer
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - UI
   - Door
   - Printer
-  - 
+  - Customer
   - 
   - 
   - 
