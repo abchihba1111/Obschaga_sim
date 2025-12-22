@@ -366,9 +366,30 @@ public class OrderSystem : MonoBehaviour
         }
     }
 
+    // днаюбхрэ щрнр лернд
+    public void AddPaper(int amount)
+    {
+        paperInventory += amount;
+        UpdateUI();
+
+        if (isPanelOpen)
+        {
+            CreateCards();
+        }
+
+        Debug.Log($"дНАЮБКЕМН {amount} КХЯРНБ АСЛЮЦХ. бЯЕЦН: {paperInventory}");
+    }
+
+    // днаюбхрэ щрнр лернд дкъ онйсойх йнпнайх
+    public void AddPaperBox(int papersPerBox = 120)
+    {
+        AddPaper(papersPerBox);
+    }
+
     void OnDestroy()
     {
         isGeneratingOrders = false;
         StopAllCoroutines();
     }
+
 }

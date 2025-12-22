@@ -432,6 +432,18 @@ public class ShopController : MonoBehaviour
                 item.itemToShow.SetActive(true);
         }
 
+        // ДОБАВЛЯЕМ ЭТУ ПРОВЕРКУ ПОСЛЕ ВСЕХ ДЕЙСТВИЙ
+        // НО ДО CreateItems()
+        if (item.itemName.Contains("бумаг") || item.itemName.Contains("Бумаг") ||
+            item.itemName.Contains("paper") || item.itemName.Contains("Paper"))
+        {
+            OrderSystem orderSystem = FindObjectOfType<OrderSystem>();
+            if (orderSystem != null)
+            {
+                orderSystem.AddPaper(120);
+            }
+        }
+
         CreateItems();
     }
 
